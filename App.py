@@ -257,9 +257,22 @@ def home_page():
     # Button to view saved meals
     if st.button(f"📜 {t['saved_meals']}"):
         st.session_state.current_page = "meals"
+    # Button to navigate back
+    if st.button(f"🔙 {t['back']}"):
+        st.session_state.current_page = "home"
 
 def display_meals_page():
     # Other parts of your code remain the same...
+    st.title(f"📋 {t['saved_meals']}")
+    for meal_type, meals in st.session_state.meal_data.items():
+        if meals:
+            st.subheader(f"{meal_type}")
+            for meal in meals:
+                st.write(f"📅 {meal['date']}")
+                st.write(f"🍽️ {meal['name']}")
+                st.write(f"🔥 {meal['calories']} กิโลแคลอรี่" if language == "ไทย" else f"{meal['calories']} kcal")
+        else:
+            st.write(f"{t['no_meal_data']}")
 
     # Calculate total calories for the day
     if st.button("🔍 คำนวณแคลอรี่ในวันนี้ / Calculate Today's Calories"):
@@ -283,7 +296,9 @@ def display_meals_page():
             st.success(f"📈 คุณได้รับแคลอรี่น้อยกว่าความต้องการพลังงานทั้งหมด (TDEE) ที่ {tdee:.2f} kcal!")
         else:
             st.info(f"📊 คุณได้รับแคลอรี่อยู่ที่ระดับความต้องการพลังงานทั้งหมด (TDEE) ที่ {tdee:.2f} kcal!")
-
+    # Button to navigate back
+    if st.button(f"🔙 {t['back']}"):
+        st.session_state.current_page = "home"
 
 
 # Main application loop
