@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-from datetime import datetime
 
 # Set up language translations
 translations = {
@@ -34,7 +33,10 @@ translations = {
         "no_meal_data": "ยังไม่มีข้อมูลที่บันทึกไว้",
         "back": "กลับไปหน้าแรก",
         "search": "ค้นหาอาหาร",
-        "search_results": "ผลลัพธ์การค้นหา"
+        "search_results": "ผลลัพธ์การค้นหา",
+        "calculate_today_calories": "คำนวณแคลอรี่ในวันนี้",
+        "calories_consumed": "แคลอรี่ที่บริโภคในวันนี้",
+        "calories_vs_tdee": "การเปรียบเทียบแคลอรี่กับ TDEE"
     },
     "English": {
         "title": "NAB Food Calculator App",
@@ -66,7 +68,10 @@ translations = {
         "no_meal_data": "No saved meal data",
         "back": "Back to Home",
         "search": "Search Food",
-        "search_results": "Search Results"
+        "search_results": "Search Results",
+        "calculate_today_calories": "Calculate Today's Calories",
+        "calories_consumed": "Calories Consumed Today",
+        "calories_vs_tdee": "Comparison of Calories with TDEE"
     }
 }
 
@@ -156,105 +161,71 @@ def registration_page():
         st.success(f"🎉 {t['submit']}! {t['back']}")
         st.session_state.current_page = "home"
 
-# Function to get calories from Excel
-def get_calories(meal_name):
-    try:
-        # Read data from Excel file
-        df = pd.read_excel('Food.xlsx')  # Change to the path of your Excel file
-        # Find calories by meal name
-        result = df[df['Menu'] == meal_name]  # Change 'Menu' to the column name for meal names
-        if not result.empty:
-            return result.iloc[0]['Cal']  # Change 'Cal' to the column name for calories
-        else:
-            return None
-    except Exception as e:
-        st.error(f"Error reading Excel file: {e}")
-        return None
-
-# Function to search meals by name
-def search_meals(search_term):
-    try:
-        df = pd.read_excel('Food.xlsx')  # Change to the path of your Excel file
-        # Filter meals that start with the search term
-        filtered = df[df['Menu'].str.contains(search_term, na=False, case=False)]
-        return filtered
-    except Exception as e:
-        st.error(f"Error reading Excel file: {e}")
-        return pd.DataFrame()  # Return an empty DataFrame on error
+# Function to calculate today's total calories
+def calculate_today_calories():
+    total_calories = 0
+    for meals in st.session_state.meal_data.values():
+        for meal in meals:
+            total_calories += meal['calories']
+    return total_calories
 
 # Function for home page
 def home_page():
     st.title(f"🏠 {t['welcome']}")
     st.subheader(f"👤 {t['user_data']}")
-    
+
     # Display user data
     if st.session_state.user_data:
-        st.write(f"**{t['weight']}:** {st.session_state.user_data.get('weight', 0):.2f} กิโลกรัม" if language == "ไทย" else f"{t['weight']}: {st.session_state.user_data.get('weight', 0):.2f} kg")
-        st.write(f"**{t['height']}:** {st.session_state.user_data.get('height', 0)} เซนติเมตร" if language == "ไทย" else f"{t['height']}: {st.session_state.user_data.get('height', 0)} cm")
-        st.write(f"**{t['age']}:** {st.session_state.user_data.get('age', 0)} ปี" if language == "ไทย" else f"{t['age']}: {st.session_state.user_data.get('age', 0)} years")
-        st.write(f"**{t['gender']}:** {st.session_state.user_data.get('gender', '')}" if language == "ไทย" else f"{t['gender']}: {st.session_state.user_data.get('gender', '')}")
-        st.write(f"**{t['bmi']}:** {st.session_state.user_data.get('bmi', 0):.2f}")
-        st.write(f"**{t['tdee']}:** {st.session_state.user_data.get('tdee', 0):.2f} kcal")
+        st.write(f"**{t['weight']}:** {st.session_state.user_data['weight']} kg")
+        st.write(f"**{t['height']}:** {st.session_state.user_data['height']} cm")
+        st.write(f"**{t['age']}:** {st.session_state.user_data['age']} years")
+        st.write(f"**{t['gender']}:** {st.session_state.user_data['gender']}")
+        st.write(f"**{t['country']}:** {st.session_state.user_data['country']}")
+        st.write(f"**{t['bmi']}:** {st.session_state.user_data.get('bmi', 'N/A'):.2f}")
+        st.write(f"**{t['tdee']}:** {st.session_state.user_data.get('tdee', 'N/A'):.2f} kcal")
 
-    # Meal logging section
-    st.subheader(f"🍽️ {t['choose_meal']}")
-    meal_type = st.selectbox(f"📋 {t['add_meal']}", [t['breakfast'], t['lunch'], t['dinner'], t['snack']])
-    
-    # Date, name, calories, and image upload for meals
-    meal_date = st.date_input(f"📅 {t['meal_date']}", datetime.today())
-    
-    # Search functionality for meal name
-    st.subheader(f"🔍 {t['search']}")
+    # Meal selection
+    meal_type = st.selectbox(f"🍽️ {t['choose_meal']}", [t['breakfast'], t['lunch'], t['dinner'], t['snack']])
+
+    # Search meals feature
     search_term = st.text_input(f"🔍 {t['search']}")
-    
-    meal_name = None
-    calories = None
-
     if search_term:
-        search_results = search_meals(search_term)  # Function to search meals by name
-        st.subheader(t['search_results'])
-        if search_results is not None and not search_results.empty:
-            meal_name = st.selectbox(f"📝 {t['meal_name']}", options=search_results['Menu'].tolist(), key='search_meal_name')
-            calories = get_calories(meal_name)
-            if calories:
-                st.write(f"**{t['meal_calories']}:** {calories} กิโลแคลอรี่" if language == "ไทย" else f"{t['meal_calories']}: {calories} kcal")
-            else:
-                st.write(f"{t['search_results']}: {t['no_meal_data']}")
-        else:
-            st.write("❌ ไม่พบข้อมูลที่ตรงกัน")  
-
-    meal_image = st.file_uploader(f"🖼️ {t['meal_image']}", type=["jpg", "jpeg", "png"])
-    
-    if meal_image:
-        st.image(meal_image)
-
-    if st.button(f"💾 {t['save_meal']}", key='save_meal'):
-        if meal_name and calories:
-            meal_data = {
-                "date": meal_date,
-                "name": meal_name,
-                "calories": calories,
-                "image": meal_image.name if meal_image else None
-            }
-            st.session_state.meal_data[meal_type].append(meal_data)
-            st.success(f"✅ {t['save_meal']}! {t['back']}")
-        else:
-            st.error("กรุณากรอกชื่ออาหารและตรวจสอบแคลอรี่!")  # Error message if not filled
+        search_results = search_meals(search_term)
+        if not search_results.empty:
+            st.subheader(f"📜 {t['search_results']}:")
+            for index, row in search_results.iterrows():
+                st.write(f"- {row['Menu']} : {row['Cal']} kcal")  # Adjust column names as necessary
+                if st.button(f"➕ {t['add_meal']} {row['Menu']}", key=f"add_{index}"):
+                    st.session_state.meal_data[meal_type].append({
+                        "name": row['Menu'],
+                        "calories": row['Cal']
+                    })
+                    st.success(f"{row['Menu']} {t['saved_meals']}!")
 
     # Display saved meals
-    st.subheader(f"📋 {t['saved_meals']}")
-    for meal_type, meals in st.session_state.meal_data.items():
-        st.write(f"**{meal_type}:**")
-        if meals:
-            for idx, meal in enumerate(meals):
-                st.write(f"{idx + 1}. {meal['date']} - {meal['name']} - {meal['calories']} kcal")
-                if meal['image']:
-                    st.image(meal['image'])
-        else:
-            st.write(t['no_meal_data'])
+    st.subheader(f"📊 {t['saved_meals']}:")
+    if st.session_state.meal_data[meal_type]:
+        for meal in st.session_state.meal_data[meal_type]:
+            st.write(f"- {meal['name']} : {meal['calories']} kcal")
+    else:
+        st.write(t['no_meal_data'])
 
-# Navigation logic
+    # Calculate total calories for the day
+    if st.button("🔍 คำนวณแคลอรี่ในวันนี้ / Calculate Today's Calories"):
+        total_calories = sum(meal['calories'] for meal_list in st.session_state.meal_data.values() for meal in meal_list)
+        st.write(f"**แคลอรี่ที่ได้รับในวันนี้:** {total_calories} kcal")
+
+        # Compare with TDEE
+        tdee = st.session_state.user_data.get("tdee", 0)
+        if total_calories > tdee:
+            st.warning(f"📉 คุณได้รับแคลอรี่มากกว่าความต้องการพลังงานทั้งหมด (TDEE) ที่ {tdee:.2f} kcal!")
+        elif total_calories < tdee:
+            st.success(f"📈 คุณได้รับแคลอรี่น้อยกว่าความต้องการพลังงานทั้งหมด (TDEE) ที่ {tdee:.2f} kcal!")
+        else:
+            st.info(f"📊 คุณได้รับแคลอรี่อยู่ที่ระดับความต้องการพลังงานทั้งหมด (TDEE) ที่ {tdee:.2f} kcal!")
+
+# Render the current page
 if st.session_state.current_page == "registration":
     registration_page()
 else:
-    home_page()
+    home_page() 
