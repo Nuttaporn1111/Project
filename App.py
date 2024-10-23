@@ -187,6 +187,9 @@ def home_page():
         meal_date = st.date_input(f"📅 {t['meal_date']}", datetime.now())
         meal_name = st.text_input(f"🍽️ {t['meal_name']}", "")
         
+        # Dropdown for meal type selection
+        meal_type = st.selectbox(f"🍽️ {t['choose_meal']}", [t['breakfast'], t['lunch'], t['dinner'], t['snack']])
+        
         # Search for calories in Excel when user types
         if meal_name:
             meal_calories = get_calories(meal_name)
@@ -198,26 +201,27 @@ def home_page():
         meal_image = st.file_uploader(f"📸 {t['meal_image']}", type=["jpg", "jpeg", "png"])
 
         if st.form_submit_button(f"💾 {t['save_meal']}"):
-            if meal_name in st.session_state.meal_data:
-                if meal_calories is not None:  # Check if calories were fetched successfully
-                    st.session_state.meal_data[meal_name].append({
-                        "date": meal_date,
-                        "calories": meal_calories,
-                        "image": meal_image
-                    })
-                    st.success(f"✅ {t['save_meal']} {meal_name}!")
+            if meal_calories is not None:  # Check if calories were fetched successfully
+                st.session_state.meal_data[meal_type].append({
+                    "date": meal_date,
+                    "name": meal_name,
+                    "calories": meal_calories,
+                    "image": meal_image
+                })
+                st.success(f"✅ {t['save_meal']} {meal_name}!")
 
     # Display saved meals
     st.subheader(f"📜 {t['saved_meals']}")
     for meal_type, meals in st.session_state.meal_data.items():
+        st.write(f"**{meal_type}:**")
         if meals:
-            st.write(f"**{meal_type}:**")
             for meal in meals:
-                st.write(f"- {meal['date']} - {meal['calories']} kcal")
+                st.write(f"🗓️ {meal['date']} - {meal['name']} - {meal['calories']} kcal")
                 if meal['image'] is not None:
-                    st.image(meal['image'], caption=meal_type)
+                    st.image(meal['image'], width=100)
         else:
-            st.write(f"{t['no_meal_data']}")
+            st.write(t['no_meal_data'])
+
 
 # Page navigation
 if st.session_state.current_page == "registration":
