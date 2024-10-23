@@ -32,7 +32,9 @@ translations = {
         "save_meal": "บันทึกมื้ออาหาร",
         "saved_meals": "ข้อมูลที่บันทึกไว้",
         "no_meal_data": "ยังไม่มีข้อมูลที่บันทึกไว้",
-        "back": "กลับไปหน้าแรก"
+        "back": "กลับไปหน้าแรก",
+        "search": "ค้นหาอาหาร",
+        "search_results": "ผลลัพธ์การค้นหา"
     },
     "English": {
         "title": "NAB Food Calculator App",
@@ -62,7 +64,9 @@ translations = {
         "save_meal": "Save Meal",
         "saved_meals": "Saved Meal Data",
         "no_meal_data": "No saved meal data",
-        "back": "Back to Home"
+        "back": "Back to Home",
+        "search": "Search Food",
+        "search_results": "Search Results"
     }
 }
 
@@ -86,10 +90,10 @@ st.sidebar.markdown(
 # Dictionary to store meal data
 if 'meal_data' not in st.session_state:
     st.session_state.meal_data = {
-        "มื้อเช้า": [],
-        "มื้อกลางวัน": [],
-        "มื้อเย็น": [],
-        "ของว่าง": []
+        t['breakfast']: [],
+        t['lunch']: [],
+        t['dinner']: [],
+        t['snack']: []
     }
 
 # User registration data
@@ -167,49 +171,65 @@ def get_calories(meal_name):
         st.error(f"Error reading Excel file: {e}")
         return None
 
-# Function to display the home page
+# Function to search meals by name
+def search_meals(search_term):
+    try:
+        df = pd.read_excel('Food.xlsx')  # Change to the path of your Excel file
+        # Filter meals that start with the search term
+        filtered = df[df['Menu'].str.startswith(search_term, na=False)]
+        return filtered
+    except Exception as e:
+        st.error(f"Error reading Excel file: {e}")
+        return pd.DataFrame()  # Return an empty DataFrame
+
+# Home page
 def home_page():
-    st.title(f"🏠 {t['title']}")
-    st.write(f"{t['welcome']} 😃")
+    st.title(f"🏠 {t['welcome']}")
+    # User data display
+    if st.session_state.user_data:
+        st.subheader(f"🗂️ {t['user_data']}")
+        st.write(f"**{t['weight']}:** {st.session_state.user_data.get('weight', 0)} กิโลกรัม" if language == "ไทย" else f"{t['weight']}: {st.session_state.user_data.get('weight', 0)} kg")
+        st.write(f"**{t['height']}:** {st.session_state.user_data.get('height', 0)} เซนติเมตร" if language == "ไทย" else f"{t['height']}: {st.session_state.user_data.get('height', 0)} cm")
+        st.write(f"**{t['age']}:** {st.session_state.user_data.get('age', 0)} ปี" if language == "ไทย" else f"{t['age']}: {st.session_state.user_data.get('age', 0)} years")
+        st.write(f"**{t['gender']}:** {st.session_state.user_data.get('gender', 'N/A')}")
+        st.write(f"**{t['country']}:** {st.session_state.user_data.get('country', 'N/A')}")
+        st.write(f"**{t['bmi']}:** {st.session_state.user_data.get('bmi', 0):.2f}" if 'bmi' in st.session_state.user_data else "N/A")
+        st.write(f"**{t['tdee']}:** {st.session_state.user_data.get('tdee', 0):.2f} kcal" if 'tdee' in st.session_state.user_data else "N/A")
     
-    # Display user data with an expander
-    with st.expander(f"📊 {t['user_data']}"):
-        st.write(f"**{t['weight']}:** {st.session_state.user_data.get('weight', 0)} กิโลกรัม" if language == "ไทย" else "kg")
-        st.write(f"**{t['height']}:** {st.session_state.user_data.get('height', 0)} เซนติเมตร" if language == "ไทย" else "cm")
-        st.write(f"**{t['age']}:** {st.session_state.user_data.get('age', 0)} ปี" if language == "ไทย" else "years")
-        st.write(f"**{t['bmi']}:** {st.session_state.user_data.get('bmi', 0):.2f}" if language == "ไทย" else "BMI")
-        st.write(f"**{t['tdee']}:** {st.session_state.user_data.get('tdee', 0):.2f} kcal" if language == "ไทย" else "TDEE")
-
-    # Meal addition form
-    st.header(f"🍽️ {t['add_meal']}")
+    # Meal addition section
+    st.subheader(f"🍽️ {t['add_meal']}")
+    meal_type = st.selectbox(f"🍴 {t['choose_meal']}", [t['breakfast'], t['lunch'], t['dinner'], t['snack']])
+    meal_date = st.date_input(f"📅 {t['meal_date']}", datetime.now())
     
-    with st.form("add_meal_form"):
-        meal_date = st.date_input(f"📅 {t['meal_date']}", datetime.now())
-        meal_name = st.text_input(f"🍽️ {t['meal_name']}", "")
-        
-        # Dropdown for meal type selection
-        meal_type = st.selectbox(f"🍽️ {t['choose_meal']}", [t['breakfast'], t['lunch'], t['dinner'], t['snack']])
-        
-        # Search for calories in Excel when user types
-        if meal_name:
-            meal_calories = get_calories(meal_name)
-            if meal_calories is not None:
-                st.write(f"🔥 **Calories:** {meal_calories} kcal")
-            else:
-                st.write("⚠️ ไม่พบข้อมูลแคลอรี่ของอาหารนี้" if language == "ไทย" else "⚠️ No calorie information found for this meal.")
-        
-        meal_image = st.file_uploader(f"📸 {t['meal_image']}", type=["jpg", "jpeg", "png"])
-
-        if st.form_submit_button(f"💾 {t['save_meal']}"):
-            if meal_calories is not None:  # Check if calories were fetched successfully
-                st.session_state.meal_data[meal_type].append({
-                    "date": meal_date,
-                    "name": meal_name,
-                    "calories": meal_calories,
-                    "image": meal_image
-                })
-                st.success(f"✅ {t['save_meal']} {meal_name}!")
-
+    # Search functionality
+    st.subheader(f"🔍 {t['search']}")
+    search_term = st.text_input(f"🔍 {t['search']}")
+    
+    if search_term:
+        search_results = search_meals(search_term)
+        st.subheader(t['search_results'])
+        if not search_results.empty:
+            meal_name = st.selectbox(f"📝 {t['meal_name']}", options=search_results['Menu'].tolist())
+            calories = get_calories(meal_name)
+            st.write(f"🔍 ค้นพบแคลอรี่: {calories} kcal")
+        else:
+            st.write("❌ ไม่พบข้อมูลที่ตรงกัน")
+    
+    meal_image = st.file_uploader(f"🖼️ {t['meal_image']}", type=["jpg", "png", "jpeg"])
+    
+    # Save meal data
+    if st.button(f"💾 {t['save_meal']}"):
+        if meal_name and calories is not None:
+            st.session_state.meal_data[meal_type].append({
+                "date": meal_date,
+                "name": meal_name,
+                "calories": calories,
+                "image": meal_image
+            })
+            st.success(f"✅ {t['save_meal']} {meal_name}!")
+        else:
+            st.warning("กรุณากรอกชื่ออาหารและแคลอรี่ให้ครบถ้วน!")
+    
     # Display saved meals
     st.subheader(f"📜 {t['saved_meals']}")
     for meal_type, meals in st.session_state.meal_data.items():
@@ -222,9 +242,8 @@ def home_page():
         else:
             st.write(t['no_meal_data'])
 
-
-# Page navigation
+# Page routing
 if st.session_state.current_page == "registration":
     registration_page()
-else:
+elif st.session_state.current_page == "home":
     home_page()
