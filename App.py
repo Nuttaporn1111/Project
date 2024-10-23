@@ -194,7 +194,6 @@ def add_meal_page(meal_type):
             "date": meal_date,
             "name": meal_name,
             "calories": meal_calories,
-            "description": meal_description,
             "image": meal_image
         })
         st.success(f"✅ {t['save_meal']}")
