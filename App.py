@@ -4,7 +4,7 @@ from datetime import datetime
 # Set up language translations
 translations = {
     "ไทย": {
-        "title": "แอปคำนวณแคลอรี่",
+        "title": "NAB Food Calculator App",
         "registration": "ลงทะเบียน",
         "weight": "น้ำหนัก (กิโลกรัม)",
         "height": "ส่วนสูง (เซนติเมตร)",
@@ -27,7 +27,6 @@ translations = {
         "meal_date": "เลือกวันที่",
         "meal_name": "ชื่ออาหาร",
         "meal_calories": "เลือกแคลอรี่ (กิโลแคลอรี่)",
-        "meal_description": "คำบรรยายเกี่ยวกับอาหาร",
         "meal_image": "อัพโหลดภาพอาหาร",
         "save_meal": "บันทึกมื้ออาหาร",
         "saved_meals": "ข้อมูลที่บันทึกไว้",
@@ -35,7 +34,7 @@ translations = {
         "back": "กลับไปหน้าแรก"
     },
     "English": {
-        "title": "Calorie Calculator App",
+        "title": "NAB Food Calculator App",
         "registration": "Registration",
         "weight": "Weight (kg)",
         "height": "Height (cm)",
@@ -58,7 +57,6 @@ translations = {
         "meal_date": "Select Date",
         "meal_name": "Meal Name",
         "meal_calories": "Choose Calories (kcal)",
-        "meal_description": "Meal Description",
         "meal_image": "Upload Meal Image",
         "save_meal": "Save Meal",
         "saved_meals": "Saved Meal Data",
@@ -73,9 +71,16 @@ language = st.selectbox("🌐 เลือกภาษา / Select Language", ["
 # Use the selected language for translations
 t = translations[language]
 
-# Sidebar configuration
-st.sidebar.title(t["title"])
-st.sidebar.image("https://example.com/your_logo.png", use_column_width=True)
+# Sidebar configuration with circular logo
+st.sidebar.markdown(
+    f"""
+    <div style="display: flex; align-items: center;">
+        <img src="https://i.imgur.com/d7m4oYk_d.webp?maxwidth=760&fidelity=grand" style="width: 60px; height: 60px; border-radius: 50%; margin-right: 10px;">
+        <h2 style="margin: 0;">{t['title']}</h2>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 
 # Dictionary to store meal data
 if 'meal_data' not in st.session_state:
@@ -181,7 +186,6 @@ def add_meal_page(meal_type):
     meal_date = st.date_input(f"📅 {t['meal_date']}", datetime.now())
     meal_name = st.text_input(f"🍴 {t['meal_name']}")
     meal_calories = st.slider(f"🔢 {t['meal_calories']}", 0, 2000, 100)
-    meal_description = st.text_area(f"📝 {t['meal_description']}")
     meal_image = st.file_uploader(f"🖼️ {t['meal_image']}")
 
     if st.button(f"💾 {t['save_meal']}"):
