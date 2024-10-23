@@ -248,3 +248,4 @@ if st.session_state.current_page == "registration":
 elif st.session_state.current_page == "home":
     home_page()
 print('2')
+
