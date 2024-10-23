@@ -247,5 +247,5 @@ if st.session_state.current_page == "registration":
     registration_page()
 elif st.session_state.current_page == "home":
     home_page()
-print('3')
+
 
