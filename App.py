@@ -247,5 +247,45 @@ if st.session_state.current_page == "registration":
     registration_page()
 elif st.session_state.current_page == "home":
     home_page()
-print('3')
+
+# อ่านไฟล์ Excel
+file_path = "Food.xlsx"  # ใส่ที่อยู่ไฟล์ของคุณ
+df = pd.read_excel(file_path)
+
+# ฟังก์ชันคำนวณแคลอรีจากรายการอาหาร
+def calculate_total_kcal(meals):
+    total_kcal = sum(meals)  # บวกแคลอรีในแต่ละเมนู
+    return total_kcal  # คืนค่ารวมแคลอรีทั้งหมด
+
+# ฟังก์ชันสำหรับการป้อนอาหารในแต่ละมื้อ
+def input_meals(meal_time, df, num_of_meals=3):
+    meals = []
+    for i in range(num_of_meals):
+        food_name = input(f"ป้อนชื่ออาหารสำหรับ{meal_time} {i + 1}: ")
+        food_row = df[df['Menu'].str.contains(food_name, case=False, na=False)]
+        
+        if not food_row.empty:
+            kcal = food_row['Cal'].values[0]
+            meals.append(kcal)
+            print(f"{food_name} มีแคลอรี {kcal} kcal")
+        else:
+            print(f"ไม่พบชื่ออาหาร '{food_name}' ในเมนู")
+    
+    return meals
+
+# รับข้อมูลสำหรับมื้อเช้า
+meals_m = input_meals("มื้อเช้า", df)
+total_m = calculate_total_kcal(meals_m)
+
+# รับข้อมูลสำหรับมื้อเที่ยง
+meals_l = input_meals("มื้อเที่ยง", df)
+total_l = calculate_total_kcal(meals_l)
+
+# รับข้อมูลสำหรับมื้อเย็น
+meals_n = input_meals("มื้อเย็น", df)
+total_n = calculate_total_kcal(meals_n)
+
+# คำนวณแคลอรีทั้งหมด
+total_kcal = total_m + total_l + total_n
+print("รวมแคลอรีทั้งหมด:", total_kcal)
 
