@@ -1,6 +1,82 @@
 import streamlit as st
 from datetime import datetime
 
+# Set up language translations
+translations = {
+    "ไทย": {
+        "title": "แอปคำนวณแคลอรี่",
+        "registration": "ลงทะเบียน",
+        "weight": "น้ำหนัก (กิโลกรัม)",
+        "height": "ส่วนสูง (เซนติเมตร)",
+        "age": "อายุ (ปี)",
+        "gender": "เพศ",
+        "country": "เลือกประเทศ",
+        "language": "เลือกภาษา",
+        "activity_level": "ระดับกิจกรรม",
+        "submit": "บันทึกข้อมูล",
+        "welcome": "ยินดีต้อนรับสู่แอปคำนวณแคลอรี่!",
+        "user_data": "ข้อมูลผู้ใช้ของคุณ",
+        "bmi": "ค่าดัชนีมวลกาย (BMI)",
+        "tdee": "ความต้องการพลังงานทั้งหมด (TDEE)",
+        "choose_meal": "เลือกมื้ออาหาร",
+        "breakfast": "มื้อเช้า",
+        "lunch": "มื้อกลางวัน",
+        "dinner": "มื้อเย็น",
+        "snack": "ของว่าง",
+        "add_meal": "เพิ่มข้อมูล",
+        "meal_date": "เลือกวันที่",
+        "meal_name": "ชื่ออาหาร",
+        "meal_calories": "เลือกแคลอรี่ (กิโลแคลอรี่)",
+        "meal_description": "คำบรรยายเกี่ยวกับอาหาร",
+        "meal_image": "อัพโหลดภาพอาหาร",
+        "save_meal": "บันทึกมื้ออาหาร",
+        "saved_meals": "ข้อมูลที่บันทึกไว้",
+        "no_meal_data": "ยังไม่มีข้อมูลที่บันทึกไว้",
+        "back": "กลับไปหน้าแรก"
+    },
+    "English": {
+        "title": "Calorie Calculator App",
+        "registration": "Registration",
+        "weight": "Weight (kg)",
+        "height": "Height (cm)",
+        "age": "Age (years)",
+        "gender": "Gender",
+        "country": "Select Country",
+        "language": "Select Language",
+        "activity_level": "Activity Level",
+        "submit": "Submit",
+        "welcome": "Welcome to the Calorie Calculator App!",
+        "user_data": "Your User Data",
+        "bmi": "Body Mass Index (BMI)",
+        "tdee": "Total Daily Energy Expenditure (TDEE)",
+        "choose_meal": "Choose a Meal",
+        "breakfast": "Breakfast",
+        "lunch": "Lunch",
+        "dinner": "Dinner",
+        "snack": "Snack",
+        "add_meal": "Add Meal",
+        "meal_date": "Select Date",
+        "meal_name": "Meal Name",
+        "meal_calories": "Choose Calories (kcal)",
+        "meal_description": "Meal Description",
+        "meal_image": "Upload Meal Image",
+        "save_meal": "Save Meal",
+        "saved_meals": "Saved Meal Data",
+        "no_meal_data": "No saved meal data",
+        "back": "Back to Home"
+    }
+}
+
+# Select language
+language = st.selectbox("🌐 เลือกภาษา / Select Language", ["ไทย", "English"])
+
+# Use the selected language for translations
+t = translations[language]
+
+# Sidebar configuration
+st.sidebar.title(t["title"])
+st.sidebar.image("https://example.com/your_logo.png", use_column_width=True)
+
 # Dictionary to store meal data
 if 'meal_data' not in st.session_state:
     st.session_state.meal_data = {
@@ -20,37 +96,36 @@ if 'current_page' not in st.session_state:
 
 # Function for user registration
 def registration_page():
-    st.title("ลงทะเบียน")
+    st.title(f"📋 {t['registration']}")
     
-    # Input for weight, height, age, and gender
-    weight = st.number_input("น้ำหนัก (กิโลกรัม)", min_value=0.0, format="%.2f")
-    height = st.number_input("ส่วนสูง (เซนติเมตร)", min_value=0.0, format="%.2f")
-    age = st.number_input("อายุ (ปี)", min_value=0, format="%d")
-    gender = st.selectbox("เพศ", ["ชาย", "หญิง"])
+    # Use Columns for layout
+    col1, col2 = st.columns(2)
     
-    # Country selection
-    country = st.selectbox("เลือกประเทศ", ["ประเทศไทย", "สหรัฐอเมริกา", "ญี่ปุ่น", "ประเทศอื่นๆ"])
+    with col1:
+        weight = st.number_input(f"🏋️‍♂️ {t['weight']}", min_value=0.0, format="%.2f")
+        height = st.number_input(f"📏 {t['height']}", min_value=0.0, format="%.2f")
+        age = st.number_input(f"👶 {t['age']}", min_value=0, format="%d")
     
-    # Language selection
-    language = st.selectbox("เลือกภาษา", ["ไทย", "อังกฤษ", "ญี่ปุ่น"])
+    with col2:
+        gender = st.selectbox(f"🚻 {t['gender']}", ["ชาย" if language == "ไทย" else "Male", "หญิง" if language == "ไทย" else "Female"])
+        country = st.selectbox(f"🌍 {t['country']}", ["ประเทศไทย" if language == "ไทย" else "Thailand", "สหรัฐอเมริกา" if language == "ไทย" else "USA", "ญี่ปุ่น" if language == "ไทย" else "Japan", "ประเทศอื่นๆ" if language == "ไทย" else "Other"])
     
-    # Activity level selection
-    activity_level = st.selectbox("ระดับกิจกรรม", [
-        ("นั่งทำงาน", 1.2),
-        ("ออกกำลังกายเบา", 1.375),
-        ("ออกกำลังกายปานกลาง", 1.55),
-        ("ออกกำลังกายหนัก", 1.725)
+    # Activity level selection with icons
+    activity_level = st.selectbox(f"🏃‍♀️ {t['activity_level']}", [
+        ("นั่งทำงาน 💻" if language == "ไทย" else "Sedentary 💻", 1.2),
+        ("ออกกำลังกายเบา 🚶‍♂️" if language == "ไทย" else "Light Exercise 🚶‍♂️", 1.375),
+        ("ออกกำลังกายปานกลาง 🏋️‍♀️" if language == "ไทย" else "Moderate Exercise 🏋️‍♀️", 1.55),
+        ("ออกกำลังกายหนัก 🏃‍♂️" if language == "ไทย" else "Heavy Exercise 🏃‍♂️", 1.725)
     ], format_func=lambda x: x[0])
 
-    # Button to submit registration
-    if st.button("บันทึกข้อมูล"):
+    # Submit registration with a button
+    if st.button(f"📝 {t['submit']}", help=t["submit"]):
         st.session_state.user_data = {
             "weight": weight,
             "height": height,
             "age": age,
             "gender": gender,
-            "country": country,
-            "language": language
+            "country": country
         }
 
         # Calculate BMI
@@ -59,7 +134,7 @@ def registration_page():
             st.session_state.user_data["bmi"] = bmi
 
             # Calculate BMR
-            if gender == "ชาย":
+            if gender == ("ชาย" if language == "ไทย" else "Male"):
                 bmr = 10 * weight + 6.25 * height - 5 * age + 5
             else:
                 bmr = 10 * weight + 6.25 * height - 5 * age - 161
@@ -68,103 +143,63 @@ def registration_page():
             tdee = bmr * activity_level[1]
             st.session_state.user_data["tdee"] = tdee
 
-        st.success("ลงทะเบียนเรียบร้อยแล้ว! กดที่ปุ่มเพื่อไปที่หน้าแรก")
+        st.success(f"🎉 {t['submit']}! {t['back']}")
         st.session_state.current_page = "home"
 
 # Function to display the home page
 def home_page():
-    st.title("หน้าแรก")
-    st.write("ยินดีต้อนรับสู่แอปคำนวณแคลอรี่!")
+    st.title(f"🏠 {t['title']}")
+    st.write(f"{t['welcome']} 😃")
     
-    # Show user data
-    st.write(f"น้ำหนัก: {st.session_state.user_data.get('weight', 0)} กิโลกรัม")
-    st.write(f"ส่วนสูง: {st.session_state.user_data.get('height', 0)} เซนติเมตร")
-    st.write(f"อายุ: {st.session_state.user_data.get('age', 0)} ปี")
-    st.write(f"ประเทศ: {st.session_state.user_data.get('country', '')}")
-    st.write(f"ภาษา: {st.session_state.user_data.get('language', '')}")
+    # Display user data with an expander
+    with st.expander(f"📊 {t['user_data']}"):
+        st.write(f"**{t['weight']}:** {st.session_state.user_data.get('weight', 0)} กิโลกรัม" if language == "ไทย" else "kg")
+        st.write(f"**{t['height']}:** {st.session_state.user_data.get('height', 0)} เซนติเมตร" if language == "ไทย" else "cm")
+        st.write(f"**{t['age']}:** {st.session_state.user_data.get('age', 0)} ปี" if language == "ไทย" else "years")
+        st.write(f"**{t['country']}:** {st.session_state.user_data.get('country', '')}")
     
-    # Display BMI and TDEE
-    if "bmi" in st.session_state.user_data:
-        st.write(f"ค่าดัชนีมวลกาย (BMI): {st.session_state.user_data['bmi']:.2f}")
-    if "tdee" in st.session_state.user_data:
-        st.write(f"ความต้องการพลังงานทั้งหมด (TDEE): {st.session_state.user_data['tdee']:.2f} กิโลแคลอรี่")
+        # Display BMI and TDEE
+        if "bmi" in st.session_state.user_data:
+            st.metric(f"📏 {t['bmi']}", f"{st.session_state.user_data['bmi']:.2f}")
+        if "tdee" in st.session_state.user_data:
+            st.metric(f"🔥 {t['tdee']}", f"{st.session_state.user_data['tdee']:.2f} กิโลแคลอรี่")
 
-    # Create buttons for each meal type
-    if st.button("มื้อเช้า"):
+    # Create buttons with icons
+    st.markdown(f"## 🍽️ {t['choose_meal']}")
+    if st.button(f"🍳 {t['breakfast']}"):
         st.session_state.current_page = "breakfast"
-    if st.button("มื้อกลางวัน"):
+    if st.button(f"🍲 {t['lunch']}"):
         st.session_state.current_page = "lunch"
-    if st.button("มื้อเย็น"):
+    if st.button(f"🍛 {t['dinner']}"):
         st.session_state.current_page = "dinner"
-    if st.button("ของว่าง"):
+    if st.button(f"🍪 {t['snack']}"):
         st.session_state.current_page = "snack"
 
 # Function to display the add meal page
-def add_meal_page(meal_type, meal_name):
-    st.title(f"เพิ่มข้อมูล {meal_name}")
-    
-    # Date input
-    date_input = st.date_input("เลือกวันที่", datetime.today())
-    
-    # Input for meal name
-    meal_name_input = st.text_input("ชื่ออาหาร", value="", key=f"{meal_type}_name")
+def add_meal_page(meal_type):
+    st.title(f"🍽️ {t['add_meal']}")
+    meal_date = st.date_input(f"📅 {t['meal_date']}", datetime.now())
+    meal_name = st.text_input(f"🍴 {t['meal_name']}")
+    meal_calories = st.slider(f"🔢 {t['meal_calories']}", 0, 2000, 100)
+    meal_description = st.text_area(f"📝 {t['meal_description']}")
+    meal_image = st.file_uploader(f"🖼️ {t['meal_image']}")
 
-    # Use select_slider for calorie selection
-    calories = st.select_slider(
-        "เลือกแคลอรี่ (กิโลแคลอรี่)",
-        options=list(range(0, 1001, 50)),  # สร้างลิสต์จาก 0 ถึง 1000 โดยเพิ่มทีละ 50
-        value=0,
-        key=f"{meal_type}_calories"
-    )
-    
-    # Input for description
-    description = st.text_area("คำบรรยายเกี่ยวกับอาหาร", value="", key=f"{meal_type}_description")
-
-    # Image upload
-    image = st.file_uploader("อัพโหลดภาพอาหาร", type=["jpg", "png", "jpeg"], key=f"{meal_type}_image")
-
-    # Button to save meal data
-    if st.button("บันทึกมื้ออาหาร"):
-        meal_entry = {
-            'name': meal_name_input,
-            'calories': calories,
-            'description': description,
-            'image': image
-        }
-        
-        # Ensure the meal type key exists before appending
-        if meal_type in st.session_state.meal_data:
-            st.session_state.meal_data[meal_type].append(meal_entry)
-            st.success("บันทึกมื้ออาหารเรียบร้อยแล้ว!")
-        else:
-            st.error("ประเภทมื้ออาหารไม่ถูกต้อง!")
-
-    # Display stored meal data for the selected meal type
-    st.subheader(f"ข้อมูล {meal_name} ที่บันทึกไว้")
-    if meal_type in st.session_state.meal_data and st.session_state.meal_data[meal_type]:
-        for meal in st.session_state.meal_data[meal_type]:
-            if meal['image'] is not None:
-                st.image(meal['image'], use_column_width=True)  # Show image
-            st.write(f"**ชื่ออาหาร:** {meal['name']}")
-            st.write(f"**แคลอรี่:** {meal['calories']} กิโลแคลอรี่")
-            st.write(f"**คำบรรยาย:** {meal['description']}")  # Show description
-            st.write("---")  # Separator for each meal entry
-    else:
-        st.warning(f"ยังไม่มีข้อมูล {meal_name} ที่บันทึกไว้")
-    
-    if st.button("กลับไปหน้าแรก"):
+    if st.button(f"💾 {t['save_meal']}"):
+        # Save meal data
+        st.session_state.meal_data[meal_type].append({
+            "date": meal_date,
+            "name": meal_name,
+            "calories": meal_calories,
+            "description": meal_description,
+            "image": meal_image
+        })
+        st.success(f"✅ {t['save_meal']}")
         st.session_state.current_page = "home"
 
-# Render the selected page
+# Routing pages based on current page state
 if st.session_state.current_page == "registration":
     registration_page()
 elif st.session_state.current_page == "home":
     home_page()
-elif st.session_state.current_page == "breakfast":
-    add_meal_page("breakfast", "มื้อเช้า")
-elif st.session_state.current_page == "lunch":
-    add_meal_page("lunch", "มื้อกลางวัน")
-elif st.session_state.current_page == "dinner":
-    add_meal_page("dinner", "มื้อเย็น")
-elif st.session_state.current_page == "snack":
-    add_meal_page("snack", "ของว่าง")
+elif st.session_state.current_page in ["breakfast", "lunch", "dinner", "snack"]:
+    add_meal_page(st.session_state.current_page)
