@@ -220,6 +220,7 @@ def home_page():
                                 "calories": calories  # Use the cleaned integer value
                             })
                             st.success(f"✅ {row['Menu']} {t['saved_meals']}")
+                            st.write(f"Current saved meals: {st.session_state.meal_data}")  # Debugging line
                     except ValueError:
                         st.warning(f"⚠️ ไม่สามารถแปลงแคลอรี่สำหรับ {row['Menu']} ได้.")  # "Cannot convert calories for this meal."
             else:
@@ -232,13 +233,15 @@ def home_page():
             st.write(f"**{meal_type}:**")
             for meal in meals:
                 st.write(f"- {meal['name']} ({meal['calories']} kcal)")
+        else:
+            st.write(f"**{meal_type}:** ไม่มีข้อมูลอาหารที่บันทึกไว้.")  # "No meal data saved."
 
     if not any(st.session_state.meal_data.values()):  # Check if meal_data is empty
         st.warning(t['no_meal_data'])
 
     # Calculate total calories for the day
     if st.button("🔍 คำนวณแคลอรี่ในวันนี้ / Calculate Today's Calories"):
-        total_calories = sum(meal['calories'] for meal_list in st.session_state.meal_data.values() for meal in meal_list)  # No need to convert to int again
+        total_calories = sum(meal['calories'] for meal_list in st.session_state.meal_data.values() for meal in meal_list)
         st.write(f"**แคลอรี่ที่ได้รับในวันนี้:** {total_calories} kcal")
 
         # Compare with TDEE
